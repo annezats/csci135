@@ -3,6 +3,9 @@
 
 # target: dependencies
 #  rule (command)
+OBJECTS= main.o addfuncs.o morefuncs.o
+CXFLAGS= -std=c++14  #this is a flag that changes the version number of c++
+
 
 main: main.o addfuncs.o
   g++ -o main main.o addfuncs.o
