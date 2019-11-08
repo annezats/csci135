@@ -46,6 +46,7 @@ void splitOnSpace(string Dict_line, string & Dict_word, string & pronunciation) 
 
 int main(){
   string Word; string Dict_line; string Dict_word; string pronunciation;
+  cout << "say a word"<< endl;
   cin >> Word;
   Word= makeUpper(Word);
 
@@ -56,22 +57,28 @@ int main(){
       exit(1); // exit if failed to open the file
   }
 
-  // string firstline;  //unnecessary first 54 lines
-  // for (int i=0; i<=54; i++){
-  //   getline(dict, firstline);
-  // }
-
   bool foundit = false; string after="";
   while(getline(dict, Dict_line)){   //read line of dictionary
-    splitOnSpace(Dict_line, Dict_word, pronunciation);
-    //cout<< Dict_word<< '\n';
-    if (Word == Dict_word){
+    splitOnSpace(Dict_line, Dict_word, pronunciation);  //splits word n pronunc
+    if (Word == Dict_word){     //compares current word to our word
       cout<< "Pronunciation: "<< pronunciation<< endl;
       foundit = true;
+      break; //ends loop after finding the word
     }
   }
-  if (!foundit){
+  if (!foundit)
     cout<< "Not found"<< endl;
+  else{
+  //PART TWO-----------------------
+  std::ifstream dict("cmudict.0.7a"); //open dictionary
+    string same_word; string new_pronunciation;
+    cout << "Identical: ";
+    while(getline(dict,Dict_line)){    //goes through the thing again
+      splitOnSpace(Dict_line, same_word, new_pronunciation);  //does the thing again
+      if (pronunciation == new_pronunciation && same_word != Word) //compares first and new pronunc
+        cout<< same_word<< " ";
+    }
+    cout << endl;
   }
   return 0;
 }
