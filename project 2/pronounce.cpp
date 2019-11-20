@@ -15,6 +15,7 @@ using std::string;
 
 string makeUpper( string Word);
 void splitOnSpace(string Dict_line, string & Dict_word, string & pronunciation);
+bool badword(string new_word);
 int countSpaces(string pronunciation);
 void phonemify(string pronunciation, string* phonemes);
 bool replacePhoneme(string * phonemes, string * diff_phonemes, int j);
@@ -24,8 +25,8 @@ bool removePhoneme(string * phonemes, string * diff_phonemes, int j);
 int main(){
   string Word; string Dict_line; string Dict_word; string pronunciation;
   //cout << "say a word"<< endl;
-  //cin >> Word;
-  Word = "accord";
+  cin >> Word;
+  //Word = "accord";
   Word= makeUpper(Word);
 
   std::ifstream dict("cmudict.0.7a"); //open dictionary
@@ -38,7 +39,7 @@ int main(){
   while(getline(dict, Dict_line)){   //read line of dictionary
     splitOnSpace(Dict_line, Dict_word, pronunciation);  //splits word n pronunc
     if (Word == Dict_word){     //compares current word to our word
-      cout<< "Pronunciation:"<< pronunciation<< endl<< endl;
+      cout<< "Pronunciation    : "<< pronunciation<< endl<< endl;
       foundit = true;
       break; //ends loop after finding the word
     }
@@ -48,10 +49,11 @@ int main(){
   else{
   //PART TWO-----------------------
     string new_word; string new_pronunciation;
-    cout << "Identical: ";
+    cout << "Identical        :  ";
     std::ifstream dict("cmudict.0.7a"); //open dictionary
     while(getline(dict,Dict_line)){    //goes through the thing again
       splitOnSpace(Dict_line, new_word, new_pronunciation);  //does the thing again
+      if (badword(new_word)) continue;
       if (pronunciation == new_pronunciation && new_word != Word) //compares first and new pronunc
         cout<< new_word<< " ";
     }
@@ -64,21 +66,15 @@ int main(){
     string ph_array[20]; string* phonemes= ph_array;
     phonemify(pronunciation,phonemes); //puts phonemes into the array
     string* diff_phonemes=nullptr;
-    string replaceTotal = "Replace phoneme :";
-    string addTotal = "Add phoneme :";
-    string removeTotal = "Remove phoneme :";
+    string replaceTotal = "Replace phoneme  : ";
+    string addTotal = "Add phoneme      : ";
+    string removeTotal = "Remove phoneme   : ";
 
     std::ifstream dict1("cmudict.0.7a");
     while(getline(dict1,Dict_line)){
       splitOnSpace(Dict_line, new_word, new_pronunciation);  //splits line into word n pronunc
+      if (badword(new_word)) continue;
       int m = countSpaces(new_pronunciation);
-      if (m==j){ //for replace, need same # of phonemes
-        string new_array[20]; string * diff_phonemes = new_array;
-        phonemify(new_pronunciation,diff_phonemes);
-        replace = replacePhoneme(phonemes, diff_phonemes, j); //returns true if only one is replaced
-        if (replace && pronunciation!= new_pronunciation) //compares first and new pronunc
-          replaceTotal = replaceTotal + " "+ new_word;
-      }
       if (m == (j+1)){ //for add, need one more phoneme
         string new_array[20]; string * diff_phonemes = new_array;
         phonemify(new_pronunciation,diff_phonemes);
@@ -90,14 +86,20 @@ int main(){
         string new_array[20]; string * diff_phonemes = new_array;
         phonemify(new_pronunciation,diff_phonemes);
         remove = removePhoneme(phonemes, diff_phonemes, j); //returns true if only one is removed
-        if (remove== true && pronunciation!= new_pronunciation) //compares first and new pronunc
+        if (remove && pronunciation!= new_pronunciation) //compares first and new pronunc
           removeTotal = removeTotal + " " + new_word;
       }
+      if (m==j){ //for replace, need same # of phonemes
+        string new_array[20]; string * diff_phonemes = new_array;
+        phonemify(new_pronunciation,diff_phonemes);
+        replace = replacePhoneme(phonemes, diff_phonemes, j); //returns true if only one is replaced
+        if (replace && pronunciation!= new_pronunciation) //compares first and new pronunc
+          replaceTotal = replaceTotal + " "+ new_word;
+      }
     } //end of the while loop for parts 3-5
-    cout<< replaceTotal <<endl;
     cout<< addTotal <<endl;
     cout<< removeTotal <<endl;
-
+    cout<< replaceTotal <<endl;
     dict1.close();
   } //end of the else of not finding the og word
   return 0;
@@ -134,6 +136,15 @@ void splitOnSpace(string Dict_line, string & Dict_word, string & pronunciation) 
     }
 }
 
+bool badword(string new_word){
+  for (int i=0; i<new_word.length(); i++){
+    if (!isalpha(new_word[i]) && (new_word[i] !='\'' )){
+      return true;
+    }
+  }
+  return false; //if good word
+}
+
 int countSpaces(string pronunciation) {//
   int i = 0; int j=0;
   while (i < pronunciation.size()) { //counts how many spaces for array
@@ -160,14 +171,9 @@ void phonemify(string pronunciation, string* phonemes){
 //REPLACE doesnt work
 bool replacePhoneme(string * phonemes, string * diff_phonemes, int j){
   int a=0;
-  for (int i=0; i<j; i++){
+  for (int i=0; i<(j+1); i++){ //j PLUS ONE fixed it i think
     if (phonemes[i]!=diff_phonemes[i]){
-      //cout << "a = " << a << " " << "\"" << phonemes[i] << "\"" << " " << "\"" << diff_phonemes[i] << "\""  << endl;
-
       a++;
-    }
-    if (phonemes[i]==diff_phonemes[i]){
-      //cout << "a = " << a << " " << "\"" << phonemes[i] << "\"" << " " << "\"" << diff_phonemes[i] << "\""  << endl;
     }
     if (a > 1){
       return false;
@@ -184,7 +190,7 @@ bool replacePhoneme(string * phonemes, string * diff_phonemes, int j){
 //ADD doesnt work
 bool addPhoneme(string * phonemes, string * diff_phonemes, int j){
   bool same=true;
-  for (int i=0; i<j; i++){
+  for (int i=0; i<(j+2); i++){
     if (!same && phonemes[i]!=diff_phonemes[i+1]){ //skips over phoneme
         return false;
     }
@@ -203,7 +209,7 @@ bool addPhoneme(string * phonemes, string * diff_phonemes, int j){
 //REMOVE WORKS
 bool removePhoneme(string * phonemes, string * diff_phonemes, int j){
   bool same=true;
-  for (int i=0; i<j; i++){
+  for (int i=0; i<(j+1); i++){
     if (!same && phonemes[i+1]!=diff_phonemes[i]){
         return false;
     }
