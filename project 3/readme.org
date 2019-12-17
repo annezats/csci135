@@ -1,0 +1,5 @@
+Make to compile
+./mission to run
+./mission rows cols numrobots debris(0-1) malfunctionrate(0-1)
+To test: ./test.rb ./mission
+Havent gotten them to fix each other
